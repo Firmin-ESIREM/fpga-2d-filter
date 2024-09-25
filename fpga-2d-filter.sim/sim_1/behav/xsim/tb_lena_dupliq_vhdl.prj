@@ -1,0 +1,6 @@
+# compile vhdl design source files
+vhdl xil_defaultlib  \
+"../../../../fpga-2d-filter.srcs/sim_1/imports/Downloads/tb_lena_dupliq_2p.vhd" \
+
+# Do not sort compile order
+nosort

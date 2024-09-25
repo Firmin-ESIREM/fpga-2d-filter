@@ -1,0 +1,7 @@
+# compile vhdl design source files
+vhdl xil_defaultlib  \
+"../../../../fpga-2d-filter.srcs/sources_1/ip/fifo/fifo_sim_netlist.vhdl" \
+"../../../../fpga-2d-filter.srcs/sim_1/new/ut_fifo.vhd" \
+
+# Do not sort compile order
+nosort
