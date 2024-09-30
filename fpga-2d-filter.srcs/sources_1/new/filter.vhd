@@ -72,7 +72,6 @@ signal din_s: t_std_logic_vector8_2;
 signal wr_en_s: t_std_logic_2;
 signal rd_en_s: t_std_logic_2;
 signal prog_full_thresh_s: t_std_logic_vector10_2;
-signal dout_s: t_std_logic_vector8_2;
 signal full_s: t_std_logic_2;
 signal empty_s: t_std_logic_2;
 signal prog_full_s: t_std_logic_2;
@@ -114,7 +113,7 @@ fifos:
                        wr_en            => wr_en_s(i),
                        rd_en            => rd_en_s(i),
                        prog_full_thresh => prog_full_thresh_s(i),
-                       dout             => dout_s(i),
+                       dout             => d_s(0, i+1),
                        full             => full_s(i),
                        empty            => empty_s(i),
                        prog_full        => prog_full_s(i)
