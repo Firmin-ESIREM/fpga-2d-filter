@@ -98,7 +98,8 @@ signal q_s: t_std_logic_vector8_3_3;
 signal en_s: t_std_logic_3_3;
 
 signal reset_fifos_and_latches: STD_LOGIC;
-signal last_pixel: integer;
+signal last_pixel_x: integer;
+signal last_pixel_y: integer; 
 signal height: integer;
 signal width: integer;
 
@@ -144,7 +145,8 @@ begin
         height <= 0;
         valid_output <= '0';
         data_output <= x"00";
-        last_pixel <= 0;
+        last_pixel_x <= 0;
+        last_pixel_y <= 0;
     else
         if (clock'event and clock = '1') then
             if (enable = '0') then
@@ -153,14 +155,18 @@ begin
                 height <= 0;
                 valid_output <= '0';
                 data_output <= x"00";
-                last_pixel <= 0;
+                last_pixel_x <= 0;
+                last_pixel_y <= 0;
             else
                 reset_fifos_and_latches <= '0';
-                if (last_pixel = 0) then
+                if (last_pixel_x = 0 and last_pixel_y = 0) then
                     width <= to_integer(signed(image_width));
                     height <= to_integer(signed(image_height));
-                end if;
-                last_pixel <= last_pixel + 1;
+                elsif last_pixel_x < width - 1 then
+                    last_pixel_x <= last_pixel_x + 1;
+                else
+                    last_pixel_x <= 0;
+                    last_pixel_y <= last_pixel_y + 1;
             end if;
         end if;
     end if;
