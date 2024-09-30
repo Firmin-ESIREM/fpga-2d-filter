@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<GenRun Id="synth_1" LaunchPart="xc7vx485tffg1157-1" LaunchTime="1727697840">
+<GenRun Id="synth_1" LaunchPart="xc7vx485tffg1157-1" LaunchTime="1727698232">
   <File Type="PA-TCL" Name="d_latch.tcl"/>
   <File Type="RDS-PROPCONSTRS" Name="d_latch_drc_synth.rpt"/>
   <File Type="REPORTS-TCL" Name="d_latch_reports.tcl"/>
