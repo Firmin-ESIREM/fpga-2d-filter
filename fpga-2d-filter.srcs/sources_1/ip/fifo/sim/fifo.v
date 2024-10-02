@@ -95,7 +95,7 @@ output wire prog_full;
     .C_DOUT_RST_VAL("0"),
     .C_DOUT_WIDTH(8),
     .C_ENABLE_RLOCS(0),
-    .C_FAMILY("virtex7"),
+    .C_FAMILY("artix7"),
     .C_FULL_FLAGS_RST_VAL(1),
     .C_HAS_ALMOST_EMPTY(0),
     .C_HAS_ALMOST_FULL(0),
