@@ -199,17 +199,17 @@ begin
                 if (last_pixel = -1) then
                     width <= to_integer(signed(image_width));
                     height <= to_integer(signed(image_height));
-                    pixels_to_enter <= to_integer(signed(image_width))*2 + 7;
+                    pixels_to_enter <= to_integer(signed(image_width))*2 + 3;
                     fifo_pixels_to_enter(0) <= 1;
                     fifo_pixels_to_enter(1) <= to_integer(signed(image_width)) + 1;
-                    fifo_pixels_to_enter(2) <= to_integer(signed(image_width))*2 + 6;
+                    fifo_pixels_to_enter(2) <= to_integer(signed(image_width))*2 + 6;    -- ICI LE SOUCI !!!
                     pixels_to_exit <= to_integer(signed(image_width)) * to_integer(signed(image_height));
-                    pixels_to_finish <= (to_integer(signed(image_width)) * to_integer(signed(image_height))) + to_integer(signed(image_width))*2 + 7;
+                    pixels_to_finish <= (to_integer(signed(image_width)) * to_integer(signed(image_height))) + to_integer(signed(image_width))*2 + 3;
                     fifo_pixels_to_exit(0) <= (to_integer(signed(image_width)) * to_integer(signed(image_height))) + 2;
                     fifo_pixels_to_exit(1) <= (to_integer(signed(image_width)) * to_integer(signed(image_height))) + to_integer(signed(image_width)) + 5;
                     fifo_pixels_to_exit(2) <= to_integer(signed(image_width)) * to_integer(signed(image_height)) + 1;
                     prog_full_thresh_s <= std_logic_vector(unsigned(image_width) - 5);
-                    prog_full_thresh_filfo <= std_logic_vector(unsigned(image_width) - 2);
+                    prog_full_thresh_filfo <= std_logic_vector(unsigned(image_width) - 1);
                     enable_fifo(0) <= '0';
                     enable_fifo(1) <= '0';
                     enable_fifo(2) <= '0';
@@ -266,6 +266,7 @@ begin
                             enable_fifo(i) <= '1';
                         else
                             prog_full_thresh_s <= std_logic_vector(to_unsigned(0, 10));
+                            prog_full_thresh_filfo <= std_logic_vector(to_unsigned(0, 10));
                             enable_fifo(i) <= '0';
                         end if;
                     end loop;
