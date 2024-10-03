@@ -1,1 +1,0 @@
--wto "48992f19267b4556bed5f9f94f1554b9" --incr --debug "typical" --relax --mt "2" -L "xil_defaultlib" -L "secureip" -L "xpm" --snapshot "ut_fifo_behav" "xil_defaultlib.ut_fifo" -log "elaborate.log" 

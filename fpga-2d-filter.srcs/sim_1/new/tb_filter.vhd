@@ -48,10 +48,7 @@ component filter
          image_height: IN STD_LOGIC_VECTOR(9 DOWNTO 0);  -- This value is read when enable is activated, it is ignored passed that point.
          enable: IN STD_LOGIC;  -- This should be set to '1' when the image's width and height are provided, and should not be set back to '0' before you have retreived the whole output image. It should be set back to '0' before proceeding with another image.
          clock: IN STD_LOGIC;
-         reset: IN STD_LOGIC;
-         debug_vector11: OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-         debug_vector12: OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-         debug_vector13: OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
+         reset: IN STD_LOGIC
        );
 end component;
 
@@ -63,9 +60,6 @@ signal valid_output_s: STD_LOGIC;
 signal enable_s: STD_LOGIC;
 signal clock_s: STD_LOGIC;
 signal reset_s: STD_LOGIC;
-signal debug_11: STD_LOGIC_VECTOR(7 DOWNTO 0);
-signal debug_12: STD_LOGIC_VECTOR(7 DOWNTO 0);
-signal debug_13: STD_LOGIC_VECTOR(7 DOWNTO 0);
 
 
 constant clock_period: time := 10 ns;
@@ -81,10 +75,7 @@ uut: filter
                   valid_output => valid_output_s,
                   enable       => enable_s,
                   clock        => clock_s,
-                  reset        => reset_s,
-                  debug_vector11 => debug_11,
-                  debug_vector12 => debug_12,
-                  debug_vector13 => debug_13 );
+                  reset        => reset_s );
     
     stimulus: process
       FILE vectors: text;

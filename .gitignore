@@ -88,3 +88,6 @@
 !*.elf
 !*.bmm
 !*.xmp
+
+# Internal project files (Octave / MATLAB)
+!*.m

@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<GenRun Id="synth_1" LaunchPart="xc7vx485tffg1157-1" LaunchTime="1727698232">
-  <File Type="PA-TCL" Name="d_latch.tcl"/>
-  <File Type="REPORTS-TCL" Name="d_latch_reports.tcl"/>
-  <File Type="RDS-RDS" Name="d_latch.vds"/>
-  <File Type="RDS-DCP" Name="d_latch.dcp"/>
+<GenRun Id="synth_1" LaunchPart="xc7a100tcsg324-2" LaunchTime="1727894723">
+  <File Type="PA-TCL" Name="filter.tcl"/>
+  <File Type="REPORTS-TCL" Name="filter_reports.tcl"/>
+  <File Type="RDS-RDS" Name="filter.vds"/>
+  <File Type="RDS-UTIL" Name="filter_utilization_synth.rpt"/>
+  <File Type="RDS-UTIL-PB" Name="filter_utilization_synth.pb"/>
+  <File Type="RDS-DCP" Name="filter.dcp"/>
   <FileSet Name="sources" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1">
     <Filter Type="Srcs"/>
     <File Path="$PSRCDIR/sources_1/imports/Downloads/d_latch.vhd">
@@ -14,24 +16,30 @@
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
+    <File Path="$PSRCDIR/sources_1/new/filter.vhd">
+      <FileInfo>
+        <Attr Name="UsedIn" Val="synthesis"/>
+        <Attr Name="UsedIn" Val="simulation"/>
+      </FileInfo>
+    </File>
     <File Path="$PSRCDIR/sources_1/ip/fifo/fifo.xci">
       <FileInfo>
-        <Attr Name="AutoDisabled" Val="1"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PSRCDIR/sources_1/new/filter.vhd">
+    <File Path="$PSRCDIR/sources_1/imports/Downloads/add_pixels.vhd">
       <FileInfo>
-        <Attr Name="AutoDisabled" Val="1"/>
+        <Attr Name="ImportPath" Val="$PPRDIR/../../Downloads/add_pixels.vhd"/>
+        <Attr Name="ImportTime" Val="1727878936"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
     <Config>
       <Option Name="DesignMode" Val="RTL"/>
-      <Option Name="TopModule" Val="d_latch"/>
+      <Option Name="TopModule" Val="filter"/>
       <Option Name="TopAutoSet" Val="TRUE"/>
     </Config>
   </FileSet>

@@ -40,16 +40,7 @@ entity filter is
          image_height: IN STD_LOGIC_VECTOR(9 DOWNTO 0);  -- This value is read when enable is activated, it is ignored passed that point.
          enable: IN STD_LOGIC;  -- This should be set to '1' when the image’s width and height are provided, and should not be set back to '0' before you have retreived the whole output image. It should be set back to '0' before proceeding with another image.
          clock: IN STD_LOGIC;
-         reset: IN STD_LOGIC;
-         debug_vector11: OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-         debug_vector12: OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-         debug_vector13: OUT STD_LOGIC_VECTOR(7 DOWNTO 0)--;
---         debug_vector21: OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
---         debug_vector22: OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
---         debug_vector23: OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
---         debug_vector31: OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
---         debug_vector32: OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
---         debug_vector33: OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
+         reset: IN STD_LOGIC
        );
 end filter;
 
@@ -74,13 +65,19 @@ COMPONENT fifo
 END COMPONENT;
 
 type t_std_logic_2 is array (0 to 1) of STD_LOGIC;
+type t_std_logic_3 is array (0 to 2) of STD_LOGIC;
 type t_std_logic_vector8_2 is array (0 to 1) of STD_LOGIC_VECTOR(7 DOWNTO 0);
+type t_integer_3 is array (0 to 2) of integer;
 
-signal din_s: t_std_logic_vector8_2;
 signal prog_full_thresh_s: STD_LOGIC_VECTOR(9 DOWNTO 0);
-signal full_s: t_std_logic_2;
-signal empty_s: t_std_logic_2;
-signal prog_full_s: t_std_logic_2;
+signal prog_full_thresh_filfo: STD_LOGIC_VECTOR(9 DOWNTO 0);
+signal full_s: t_std_logic_3;
+signal empty_s: t_std_logic_3;
+signal prog_full_s: t_std_logic_3;
+signal enable_fifo: t_std_logic_3;
+signal fifo_pixels_to_enter: t_integer_3;
+signal fifo_pixels_to_exit: t_integer_3;
+signal filfo_out: STD_LOGIC_VECTOR(7 DOWNTO 0);
 
 
 COMPONENT d_latch
@@ -96,11 +93,10 @@ COMPONENT d_latch
   );
 END COMPONENT;
 
-type t_std_logic_3_3 is array (0 to 2, 0 to 2) of STD_LOGIC;
-type t_std_logic_vector8_3_3 is array (0 to 2, 0 to 2) of STD_LOGIC_VECTOR(7 DOWNTO 0);
+type t_std_logic_3_3 is array (0 to 3, 0 to 2) of STD_LOGIC;
+type t_std_logic_vector8_3_3 is array (0 to 3, 0 to 2) of STD_LOGIC_VECTOR(7 DOWNTO 0);
 
 signal d_s: t_std_logic_vector8_3_3;
-signal q_s: t_std_logic_vector8_3_3;
 
 signal reset_fifos_and_latches: STD_LOGIC;
 signal last_pixel: integer;
@@ -108,6 +104,13 @@ signal height: integer;
 signal width: integer;
 signal pixels_to_enter: integer;
 signal pixels_to_exit: integer;
+signal pixels_to_finish: integer;
+signal filtered_pixel: std_logic_vector(7 downto 0);
+signal data_output_selection: std_logic_vector(7 downto 0);
+
+
+signal filtering_lena: std_logic;
+signal filtered_lena_going_out: std_logic;
 
 begin
 
@@ -116,8 +119,8 @@ fifos:
         fifo_x: fifo
             PORT MAP ( clk              => clock,
                        rst              => reset_fifos_and_latches,
-                       din              => q_s(2, i),
-                       wr_en            => enable,
+                       din              => d_s(3, i),
+                       wr_en            => enable_fifo(i),
                        rd_en            => prog_full_s(i),
                        prog_full_thresh => prog_full_thresh_s,
                        dout             => d_s(0, i+1),
@@ -127,13 +130,26 @@ fifos:
                      );
     end generate fifos;
 
+filtered_fifo: fifo
+    PORT MAP ( clk              => clock,
+               rst              => reset_fifos_and_latches,
+               din              => filtered_pixel,
+               wr_en            => enable_fifo(2),
+               rd_en            => prog_full_s(2),
+               prog_full_thresh => prog_full_thresh_filfo,
+               dout             => filfo_out,
+               full             => full_s(2),
+               empty            => empty_s(2),
+               prog_full        => prog_full_s(2)
+             );
+
 latches_column:
     for i in 0 to 2 generate
        latches_line:
            for j in 0 to 2 generate
                 latch_y: d_latch
                     PORT MAP ( D     => d_s(i, j),
-                               Q     => q_s(i, j),
+                               Q     => d_s(i+1, j),
                                CLK   => clock,
                                EN    => enable,
                                RESET => reset_fifos_and_latches
@@ -144,6 +160,8 @@ latches_column:
    
 
 filtering_process: process(clock, reset)
+variable sum: integer;
+--variable sum: unsigned(10 downto 0);
 begin
     if (reset = '1') then
         reset_fifos_and_latches <= '1';
@@ -152,62 +170,128 @@ begin
         pixels_to_enter <= 0;
         pixels_to_exit <= 0;
         valid_output <= '0';
-        data_output <= x"00";
         last_pixel <= -1;
+        enable_fifo(0) <= '0';
+        enable_fifo(1) <= '0';
+        data_output_selection <= (others => '0');
     else
         if (clock'event and clock = '1') then
             reset_fifos_and_latches <= '0';
             if (enable = '0') then
+                data_output_selection <= (others => '0');
                 width <= 0;
                 height <= 0;
                 pixels_to_enter <= 0;
                 pixels_to_exit <= 0;
                 valid_output <= '0';
-                data_output <= x"00";
                 last_pixel <= -1;
+                enable_fifo(0) <= '0';
+                enable_fifo(1) <= '0';
+                enable_fifo(2) <= '0';             
             else
-                debug_vector13 <= std_logic_vector(to_unsigned(1, 8));
+                for i in 0 to 2 loop
+                    if (last_pixel > fifo_pixels_to_enter(i) and last_pixel < fifo_pixels_to_exit(i)) then
+                        enable_fifo(i) <= '1';
+                    else
+                        enable_fifo(i) <= '0';
+                    end if;
+                end loop;
                 if (last_pixel = -1) then
-                    debug_vector11 <= std_logic_vector(to_unsigned(1, 8));
                     width <= to_integer(signed(image_width));
                     height <= to_integer(signed(image_height));
-                    pixels_to_enter <= to_integer(signed(image_width))*2 + 3;
-                    pixels_to_exit <= (to_integer(signed(image_width)) * to_integer(signed(image_height))) - to_integer(signed(image_width))*2 - 3;
-                    prog_full_thresh_s <= std_logic_vector(unsigned(image_width) - 3);
+                    pixels_to_enter <= to_integer(signed(image_width))*2 + 7;
+                    fifo_pixels_to_enter(0) <= 1;
+                    fifo_pixels_to_enter(1) <= to_integer(signed(image_width)) + 1;
+                    fifo_pixels_to_enter(2) <= to_integer(signed(image_width))*2 + 6;
+                    pixels_to_exit <= to_integer(signed(image_width)) * to_integer(signed(image_height));
+                    pixels_to_finish <= (to_integer(signed(image_width)) * to_integer(signed(image_height))) + to_integer(signed(image_width))*2 + 7;
+                    fifo_pixels_to_exit(0) <= (to_integer(signed(image_width)) * to_integer(signed(image_height))) + 2;
+                    fifo_pixels_to_exit(1) <= (to_integer(signed(image_width)) * to_integer(signed(image_height))) + to_integer(signed(image_width)) + 5;
+                    fifo_pixels_to_exit(2) <= to_integer(signed(image_width)) * to_integer(signed(image_height)) + 1;
+                    prog_full_thresh_s <= std_logic_vector(unsigned(image_width) - 5);
+                    prog_full_thresh_filfo <= std_logic_vector(unsigned(image_width) - 2);
+                    enable_fifo(0) <= '0';
+                    enable_fifo(1) <= '0';
+                    enable_fifo(2) <= '0';
+                    data_output_selection <= (others => '0');
                 elsif last_pixel < pixels_to_enter then
                     -- entrée et circulation uniquement
-                    debug_vector12 <= std_logic_vector(to_unsigned(1, 8));
-                    d_s(0, 0) <= data_entry;
-                    for i in 1 to 2 loop
-                        for j in 0 to 2 loop
-                            d_s(i, j) <= q_s(i - 1, j);
-                        end loop;
+                    for i in 0 to 2 loop
+                        if (last_pixel > fifo_pixels_to_enter(i) and last_pixel < fifo_pixels_to_exit(i)) then
+                            enable_fifo(i) <= '1';
+                        else
+                            enable_fifo(i) <= '0';
+                        end if;
                     end loop;
+                    data_output_selection <= (others => '0');
                 elsif last_pixel < pixels_to_exit then
                     -- fonctionnement complet (entrée, circulation, traitement, sortie)
-                    d_s(0, 0) <= data_entry;
-                    data_output <= q_s(2, 2);
-                    valid_output <= '1';
-                    for i in 1 to 2 loop
+                    filtering_lena <= '1';
+                    --sum := "00000000000";
+                    sum := 0;
+                    for i in 0 to 2 loop
                         for j in 0 to 2 loop
-                            d_s(i, j) <= q_s(i - 1, j);
+                            if (i /= 1 or j /= 1) then
+                                sum := sum + to_integer( unsigned(d_s(i, j)) );
+                            end if;
                         end loop;
                     end loop;
-                else
+                    
+                    sum := (sum + 4) / 8;
+                    
+                    filtered_pixel <= std_logic_vector(to_unsigned(sum, 8));
+
+                    for i in 0 to 2 loop
+                        if (last_pixel > fifo_pixels_to_enter(i) and last_pixel < fifo_pixels_to_exit(i)) then
+                            enable_fifo(i) <= '1';
+                        else
+                            enable_fifo(i) <= '0';
+                        end if;
+                    end loop;
+                    
+                    if prog_full_s(2) = '1' then
+                        data_output_selection <= filfo_out;
+                        filtered_lena_going_out <= '1';
+                    else
+                        data_output_selection <= d_s(3, 2);
+                        filtered_lena_going_out <= '0';
+                    end if;
+                    
+                    valid_output <= '1';
+                elsif last_pixel < pixels_to_finish then
                     -- circulation et sortie uniquement
-                    data_output <= q_s(2, 2);
-                    valid_output <= '1';
-                    for i in 1 to 2 loop
-                        for j in 0 to 2 loop
-                            d_s(i, j) <= q_s(i - 1, j);
-                        end loop;
+                    filtering_lena <= '0';
+                    for i in 0 to 2 loop
+                        if (last_pixel > fifo_pixels_to_enter(i) and last_pixel < fifo_pixels_to_exit(i)) then
+                            enable_fifo(i) <= '1';
+                        else
+                            prog_full_thresh_s <= std_logic_vector(to_unsigned(0, 10));
+                            enable_fifo(i) <= '0';
+                        end if;
                     end loop;
+                    
+                    if empty_s(2) = '0' then
+                        data_output_selection <= filfo_out;
+                        filtered_lena_going_out <= '1';
+                    else
+                        data_output_selection <= d_s(3, 2);
+                        filtered_lena_going_out <= '0';
+                    end if;
+                    
+                    valid_output <= '1';
+                else
+                    valid_output <= '0';
                 end if;
                 last_pixel <= last_pixel + 1;
             end if;
         end if;
     end if;
 end process;
+
+
+d_s(0, 0) <= data_entry;
+data_output <= data_output_selection;
+
 
 
 end Behavioral;
