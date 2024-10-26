@@ -78,6 +78,7 @@ signal enable_fifo: t_std_logic_3;
 signal fifo_pixels_to_enter: t_integer_3;
 signal fifo_pixels_to_exit: t_integer_3;
 signal filfo_out: STD_LOGIC_VECTOR(7 DOWNTO 0);
+signal filfo_full: STD_LOGIC;
 
 
 COMPONENT d_latch
@@ -155,9 +156,18 @@ latches_column:
                                RESET => reset_fifos_and_latches
                              );
             end generate latches_line;
-    end generate latches_column;
-    
+    end generate latches_column;    
    
+
+filfo_full_latch: d_latch
+    GENERIC MAP ( bus_width => 1 )
+    PORT MAP ( D(0)  => prog_full_s(2),
+               Q(0)  => filfo_full,
+               CLK   => clock,
+               EN    => '1',
+               RESET => reset_fifos_and_latches
+             );
+
 
 filtering_process: process(clock, reset)
 variable sum: integer;
@@ -227,7 +237,6 @@ begin
                 elsif last_pixel < pixels_to_exit then
                     -- fonctionnement complet (entrée, circulation, traitement, sortie)
                     filtering_lena <= '1';
-                    --sum := "00000000000";
                     sum := 0;
                     for i in 0 to 2 loop
                         for j in 0 to 2 loop
@@ -249,7 +258,7 @@ begin
                         end if;
                     end loop;
                     
-                    if prog_full_s(2) = '1' then
+                    if filfo_full = '1' then
                         data_output_selection <= filfo_out;
                         filtered_lena_going_out <= '1';
                     else
