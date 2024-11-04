@@ -4,7 +4,7 @@
 -- 
 -- Create Date: 06.09.2024 14:36:26
 -- Design Name: 
--- Module Name: FF_jd - FF_jd_arch
+-- Module Name: d_latch - d_latch_arch
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 

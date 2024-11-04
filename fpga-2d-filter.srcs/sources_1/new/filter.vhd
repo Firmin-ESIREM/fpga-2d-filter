@@ -38,6 +38,7 @@ entity filter is
          valid_output: OUT STD_LOGIC;  -- This is set to 1 when the filter is currently outputing some valid pixels to the data_output bus.
          image_width: IN STD_LOGIC_VECTOR(9 DOWNTO 0);  -- This value is read when enable is activated, it is ignored passed that point.
          image_height: IN STD_LOGIC_VECTOR(9 DOWNTO 0);  -- This value is read when enable is activated, it is ignored passed that point.
+         filter_type: IN STD_LOGIC_VECTOR(1 DOWNTO 0);  -- This should be set to "00" for an averaging filter, to "01" for a vertical contour-detecting filter, to "10" for a horizontal contour-detecting filter, or to "11" for a full contour-detecting filter. This value should not change while you have not at least provided every pixel. 
          enable: IN STD_LOGIC;  -- This should be set to '1' when the image’s width and height are provided, and should not be set back to '0' before you have retreived the whole output image. It should be set back to '0' before proceeding with another image.
          clock: IN STD_LOGIC;
          reset: IN STD_LOGIC
@@ -159,7 +160,7 @@ latches_column:
     end generate latches_column;    
    
 
-filfo_full_latch: d_latch
+filfo_full_transition_latch: d_latch
     GENERIC MAP ( bus_width => 1 )
     PORT MAP ( D(0)  => prog_full_s(2),
                Q(0)  => filfo_full,
@@ -170,8 +171,20 @@ filfo_full_latch: d_latch
 
 
 filtering_process: process(clock, reset)
-variable sum: integer;
---variable sum: unsigned(10 downto 0);
+variable result: integer;
+
+type filter_matrix is array (0 to 2, 0 to 2) of integer;
+
+-- BE CAREFUL WHEN IMPLEMENTING A NEW FILTER MATRIX: Each element of the array represents a COLUMN, NOT A LINE!
+
+variable averaging_matrix: filter_matrix := ((1, 1, 1), (1, 0, 1), (1, 1, 1));
+
+variable vertical_contour_matrix: filter_matrix := ((-1, -2, -1), (0, 0, 0), (1, 2, 1));
+
+variable horizontal_contour_matrix: filter_matrix := ((-1, 0, 1), (-2, 0, 2), (-1, 0, 1));
+
+variable full_contour_matrix: filter_matrix := ((0, -1, 0), (-1, 4, -1), (0, -1, 0));
+
 begin
     if (reset = '1') then
         reset_fifos_and_latches <= '1';
@@ -225,7 +238,7 @@ begin
                     enable_fifo(2) <= '0';
                     data_output_selection <= (others => '0');
                 elsif last_pixel < pixels_to_enter then
-                    -- entrée et circulation uniquement
+                    -- Input and flowing only
                     for i in 0 to 2 loop
                         if (last_pixel > fifo_pixels_to_enter(i) and last_pixel < fifo_pixels_to_exit(i)) then
                             enable_fifo(i) <= '1';
@@ -235,20 +248,36 @@ begin
                     end loop;
                     data_output_selection <= (others => '0');
                 elsif last_pixel < pixels_to_exit then
-                    -- fonctionnement complet (entrée, circulation, traitement, sortie)
+                    -- Full operation (input, flowing, treatment, output)
                     filtering_lena <= '1';
-                    sum := 0;
+                    result := 0;
                     for i in 0 to 2 loop
                         for j in 0 to 2 loop
-                            if (i /= 1 or j /= 1) then
-                                sum := sum + to_integer( unsigned(d_s(i, j)) );
+                            if filter_type = "00" then
+                                -- Averaging filter
+                                result := result + ( to_integer( unsigned(d_s(i, j)) ) * averaging_matrix(i, j) );
+                            elsif filter_type = "01" then
+                                -- Vertical contour detection filter
+                                result := result + ( to_integer( unsigned(d_s(i, j)) ) * vertical_contour_matrix(i, j) );
+                            elsif filter_type = "10" then
+                                -- Horizontal contour detection filter
+                                result := result + ( to_integer( unsigned(d_s(i, j)) ) * horizontal_contour_matrix(i, j) );
+                            else
+                                -- Full contour detection filter
+                                result := result + ( to_integer( unsigned(d_s(i, j)) ) * full_contour_matrix(i, j) );
                             end if;
                         end loop;
                     end loop;
                     
-                    sum := (sum + 4) / 8;
+                    if filter_type = "00" then
+                        -- Averaging filter
+                        result := (result + 4) / 8;
+                    else
+                        -- Some kind of contour detection filter
+                        result := abs(result);
+                    end if;
                     
-                    filtered_pixel <= std_logic_vector(to_unsigned(sum, 8));
+                    filtered_pixel <= std_logic_vector(to_unsigned(result, 8));
 
                     for i in 0 to 2 loop
                         if (last_pixel > fifo_pixels_to_enter(i) and last_pixel < fifo_pixels_to_exit(i)) then
@@ -268,7 +297,7 @@ begin
                     
                     valid_output <= '1';
                 elsif last_pixel < pixels_to_finish then
-                    -- circulation et sortie uniquement
+                    -- Flowing and output only
                     filtering_lena <= '0';
                     for i in 0 to 2 loop
                         if (last_pixel > fifo_pixels_to_enter(i) and last_pixel < fifo_pixels_to_exit(i)) then

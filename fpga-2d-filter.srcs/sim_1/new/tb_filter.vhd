@@ -46,7 +46,8 @@ component filter
          valid_output: OUT STD_LOGIC;  -- This is set to 1 when the filter is currently outputing some valid pixels to the data_output bus.
          image_width: IN STD_LOGIC_VECTOR(9 DOWNTO 0);  -- This value is read when enable is activated, it is ignored passed that point.
          image_height: IN STD_LOGIC_VECTOR(9 DOWNTO 0);  -- This value is read when enable is activated, it is ignored passed that point.
-         enable: IN STD_LOGIC;  -- This should be set to '1' when the image's width and height are provided, and should not be set back to '0' before you have retreived the whole output image. It should be set back to '0' before proceeding with another image.
+         filter_type: IN STD_LOGIC_VECTOR(1 DOWNTO 0);  -- This should be set to "00" for an averaging filter, to "01" for a vertical contour-detecting filter, to "10" for a horizontal contour-detecting filter, or to "11" for a full contour-detecting filter. This value should not change while you have not at least provided every pixel. 
+         enable: IN STD_LOGIC;  -- This should be set to '1' when the image’s width and height are provided, and should not be set back to '0' before you have retreived the whole output image. It should be set back to '0' before proceeding with another image.
          clock: IN STD_LOGIC;
          reset: IN STD_LOGIC
        );
@@ -61,6 +62,14 @@ signal enable_s: STD_LOGIC;
 signal clock_s: STD_LOGIC;
 signal reset_s: STD_LOGIC;
 
+-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! IMPORTANT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+-- To test one filter or the other, uncomment the desired line, and comment out the other one.
+    -- signal filter_type_to_test: STD_LOGIC := "00";  -- averaging filter
+    -- signal filter_type_to_test: STD_LOGIC_VECTOR(1 DOWNTO 0) := "01";  -- vertical contour detection filter
+    -- signal filter_type_to_test: STD_LOGIC_VECTOR(1 DOWNTO 0) := "10";  -- horizontal contour detection filter
+    signal filter_type_to_test: STD_LOGIC_VECTOR(1 DOWNTO 0) := "11";  -- full contour detection filter
+-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 constant clock_period: time := 10 ns;
 signal clock_init: STD_LOGIC;
@@ -73,6 +82,7 @@ uut: filter
                   image_width  => image_width_s,
                   image_height => image_height_s,
                   valid_output => valid_output_s,
+                  filter_type  => filter_type_to_test,
                   enable       => enable_s,
                   clock        => clock_s,
                   reset        => reset_s );

@@ -92,3 +92,6 @@
 
 # Internal project files (Octave / MATLAB)
 !*.m
+!demo-results/
+demo-results/*
+!demo-results/*.bmp
