@@ -55,6 +55,11 @@ This software has been designed with modularity in mind, up to a certain point.
 
 That means you can straightforwardly add new filter matrixes to `filter.vhd`, or replace some existing ones.
 
+## Testing
+
+To test the filters, you can use the test bench (`tb_filter.vhd`) as a Vivado simulation source.
+
+In that file, depending on the filtering method you want to test, you should uncomment the relevant value for `filter_type_to_test` and comment out the others.
 
 ## ___________________
 This software has been designed by [Firmin Launay](mailto:Firmin_Launay@etu.u-bourgogne.fr), in 2024, as part of the Reconfigurable Architectures course at Polytech Dijon.
