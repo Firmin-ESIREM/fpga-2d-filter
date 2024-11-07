@@ -1,3 +1,5 @@
+% File designed by Julien Dubois
+
 pkg('load', 'image');
 
 data = load('fpga-2d-filter.sim/sim_1/behav/xsim/Lena128x128g_8bits_r_filter.dat');
