@@ -95,3 +95,4 @@
 !demo-results/
 demo-results/*
 !demo-results/*.bmp
+!README.md
