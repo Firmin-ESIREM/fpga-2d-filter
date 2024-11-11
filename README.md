@@ -61,5 +61,11 @@ To test the filters, you can use the test bench (`tb_filter.vhd`) as a Vivado si
 
 In that file, depending on the filtering method you want to test, you should uncomment the relevant value for `filter_type_to_test` and comment out the others.
 
+In `fpga-2d-filter.sim/sim_1/behav/xsim`, you should provide an `input.dat` file containing each pixel, line by line, in binary format.
+
+The test bench will output the filtered image, in that same directory, into `output.dat`.
+
+You may convert this input data to a bitmap image, manually, by running `dat2bmp.m` with GNU Octave. This will create `output.bmp` at the root of the project!
+
 ## ___________________
 This software has been designed by [Firmin Launay](mailto:Firmin_Launay@etu.u-bourgogne.fr), in 2024, as part of the Reconfigurable Architectures course at Polytech Dijon.

@@ -96,8 +96,8 @@ uut: filter
       variable OLine : line;
       variable O1_var :std_logic_vector (7 downto 0);
       begin
-    file_open (vectors,"Lena128x128g_8bits.dat", read_mode);
-    file_open (results,"Lena128x128g_8bits_r_filter.dat", write_mode);
+    file_open (vectors,"input.dat", read_mode);
+    file_open (results,"output.dat", write_mode);
     clock_init <= '0';
     reset_s <= '1';
     enable_s <= '0';
