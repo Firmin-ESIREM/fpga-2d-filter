@@ -174,6 +174,8 @@ filtering_process: process(clock, reset)
 variable result: integer;
 
 type filter_matrix is array (0 to 2, 0 to 2) of integer;
+type filter_matrices_container is array (0 to 3) of filter_matrix;
+type filter_factors_container is array (0 to 3) of integer;
 
 -- BE CAREFUL WHEN IMPLEMENTING A NEW FILTER MATRIX: Each element of the array represents a COLUMN, NOT A LINE!
 
@@ -184,6 +186,16 @@ variable vertical_contour_matrix: filter_matrix := ((-1, -2, -1), (0, 0, 0), (1,
 variable horizontal_contour_matrix: filter_matrix := ((-1, 0, 1), (-2, 0, 2), (-1, 0, 1));
 
 variable full_contour_matrix: filter_matrix := ((0, -1, 0), (-1, 4, -1), (0, -1, 0));
+
+variable filter_matrices: filter_matrices_container := (averaging_matrix,
+                                                        vertical_contour_matrix,
+                                                        horizontal_contour_matrix,
+                                                        full_contour_matrix);
+
+variable filter_factors: filter_factors_container := (8,
+                                                      1,
+                                                      1,
+                                                      1);
 
 begin
     if (reset = '1') then
@@ -253,29 +265,11 @@ begin
                     result := 0;
                     for i in 0 to 2 loop
                         for j in 0 to 2 loop
-                            if filter_type = "00" then
-                                -- Averaging filter
-                                result := result + ( to_integer( unsigned(d_s(i, j)) ) * averaging_matrix(i, j) );
-                            elsif filter_type = "01" then
-                                -- Vertical contour detection filter
-                                result := result + ( to_integer( unsigned(d_s(i, j)) ) * vertical_contour_matrix(i, j) );
-                            elsif filter_type = "10" then
-                                -- Horizontal contour detection filter
-                                result := result + ( to_integer( unsigned(d_s(i, j)) ) * horizontal_contour_matrix(i, j) );
-                            else
-                                -- Full contour detection filter
-                                result := result + ( to_integer( unsigned(d_s(i, j)) ) * full_contour_matrix(i, j) );
-                            end if;
+                            result := result + ( to_integer( unsigned(d_s(i, j)) ) * filter_matrices(to_integer(unsigned(filter_type)))(i, j) );
                         end loop;
                     end loop;
                     
-                    if filter_type = "00" then
-                        -- Averaging filter
-                        result := (result + 4) / 8;
-                    else
-                        -- Some kind of contour detection filter
-                        result := abs(result);
-                    end if;
+                    result := abs(result) / filter_factors(to_integer(unsigned(filter_type)));
                     
                     filtered_pixel <= std_logic_vector(to_unsigned(result, 8));
 

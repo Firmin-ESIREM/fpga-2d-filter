@@ -64,10 +64,10 @@ signal reset_s: STD_LOGIC;
 
 -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! IMPORTANT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 -- To test one filter or the other, uncomment the desired line, and comment out the other one.
-    -- signal filter_type_to_test: STD_LOGIC := "00";  -- averaging filter
+    signal filter_type_to_test: STD_LOGIC_VECTOR(1 DOWNTO 0) := "00";  -- averaging filter
     -- signal filter_type_to_test: STD_LOGIC_VECTOR(1 DOWNTO 0) := "01";  -- vertical contour detection filter
     -- signal filter_type_to_test: STD_LOGIC_VECTOR(1 DOWNTO 0) := "10";  -- horizontal contour detection filter
-    signal filter_type_to_test: STD_LOGIC_VECTOR(1 DOWNTO 0) := "11";  -- full contour detection filter
+    -- signal filter_type_to_test: STD_LOGIC_VECTOR(1 DOWNTO 0) := "11";  -- full contour detection filter
 -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
